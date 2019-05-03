@@ -13,8 +13,14 @@ process.on('unhandledRejection', err => {
 
 const util = require('util');
 const path = require('path');
+const fs = require('fs');
 const exec = util.promisify(require('child_process').exec);
 const appendFile = util.promisify(require('fs').appendFile);
+const { copyFile } = require('fs');
+// fs.copyFile('source.txt', 'destination.txt', (err) => {
+//   if (err) throw err;
+//   console.log('source.txt was copied to destination.txt');
+// });
 
 async function build() {
   const root = path.resolve(__dirname, '..');
@@ -44,7 +50,10 @@ async function build() {
 
     // copy css
     process.stdout.write('Copying library style definitions... \n');
-    const cssResult = await exec(`cpy ${sourceDir}/css/style.css ${cssTarget}`);
+    if (!fs.existsSync(cssTarget)) {
+      fs.mkdirSync(cssTarget)
+    }
+    const cssResult = await copyFile(`${sourceDir}/css/style.css`, `${cssTarget}/style.css`, (err) => err && console.log(err));
 
     // compile antd-hack less into css and copy it into lib
     process.stdout.write('Implementing antd hack... \n');
